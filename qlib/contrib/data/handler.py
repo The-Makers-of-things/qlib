@@ -26,7 +26,10 @@ def check_transform_proc(proc_l, fit_start_time, fit_end_time):
                         "fit_end_time": fit_end_time,
                     }
                 )
-            new_l.append({"class": klass.__name__, "kwargs": pkwargs})
+            proc_config = {"class": klass.__name__, "kwargs": pkwargs}
+            if isinstance(p, dict) and "module_path" in p:
+                proc_config["module_path"] = p["module_path"]
+            new_l.append(proc_config)
         else:
             new_l.append(p)
     return new_l

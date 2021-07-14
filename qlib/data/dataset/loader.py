@@ -12,7 +12,8 @@ from typing import Tuple, Union
 from qlib.data import D
 from qlib.data import filter as filter_module
 from qlib.data.filter import BaseDFilter
-from qlib.utils import load_dataset, init_instance_by_config
+from qlib.utils import load_dataset, init_instance_by_config, time_to_slc_point
+from qlib.log import get_module_logger
 
 
 class DataLoader(abc.ABC):
@@ -206,7 +207,10 @@ class StaticDataLoader(DataLoader):
             df = self._data.loc(axis=0)[:, instruments]
         if start_time is None and end_time is None:
             return df  # NOTE: avoid copy by loc
-        return df.loc[pd.Timestamp(start_time) : pd.Timestamp(end_time)]
+        # pd.Timestamp(None) == NaT, use NaT as index can not fetch correct thing, so do not change None.
+        start_time = time_to_slc_point(start_time)
+        end_time = time_to_slc_point(end_time)
+        return df.loc[start_time:end_time]
 
     def _maybe_load_raw_data(self):
         if self._data is not None:
@@ -224,6 +228,10 @@ class DataLoaderDH(DataLoader):
     DataLoader based on (D)ata (H)andler
     It is designed to load multiple data from data handler
     - If you just want to load data from single datahandler, you can write them in single data handler
+
+    TODO: What make this module not that easy to use.
+    - For online scenario
+        - The underlayer data handler should be configured. But data loader doesn't provide such interface & hook.
     """
 
     def __init__(self, handler_config: dict, fetch_kwargs: dict = {}, is_group=False):
@@ -265,7 +273,7 @@ class DataLoaderDH(DataLoader):
 
     def load(self, instruments=None, start_time=None, end_time=None) -> pd.DataFrame:
         if instruments is not None:
-            LOG.warning(f"instruments[{instruments}] is ignored")
+            get_module_logger(self.__class__.__name__).warning(f"instruments[{instruments}] is ignored")
 
         if self.is_group:
             df = pd.concat(

@@ -11,7 +11,7 @@ NAME = "pyqlib"
 DESCRIPTION = "A Quantitative-research Platform"
 REQUIRES_PYTHON = ">=3.5.0"
 
-VERSION = "0.6.3.99"
+VERSION = "0.7.0.99"
 
 # Detect Cython
 try:
@@ -55,7 +55,9 @@ REQUIRED = [
     "tornado",
     "joblib>=0.17.0",
     "ruamel.yaml>=0.16.12",
+    "pymongo==3.7.2",  # For task management
     "scikit-learn>=0.22",
+    "dill",
 ]
 
 # Numpy include
